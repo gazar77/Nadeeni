@@ -1,0 +1,34 @@
+
+
+<!-- Cinematic Story Narrative Loader Overlay -->
+<feature-intro-loader (onComplete)="showMainContent.set(true)"></feature-intro-loader>
+
+<!-- Glassmorphic Floating Navigation Bar -->
+<feature-navbar *ngIf="showMainContent()"></feature-navbar>
+
+<!-- Main Experiential Content (Fades in when Loader completes) -->
+<main class="experiential-container" *ngIf="showMainContent()">
+  <!-- Cyber Hero Cover -->
+  <feature-hero></feature-hero>
+  
+  <!-- Horizontal & Vertical Story Chronicle -->
+  <feature-story-timeline></feature-story-timeline>
+  
+  <!-- Personnel intro cards (MOST IMPORTANT SECTION) -->
+  <feature-team></feature-team>
+  
+  <!-- Interconnected Tech Universe Orbit -->
+  <feature-tech-stack></feature-tech-stack>
+  
+  <!-- Case studies showcase panels -->
+  <feature-projects></feature-projects>
+  
+  <!-- Typographic philosophy scroll scrub -->
+  <feature-vision></feature-vision>
+  
+  <!-- Project dispatch form -->
+  <feature-contact></feature-contact>
+  
+  <!-- Futuristic Minimalist Footer -->
+  <feature-footer></feature-footer>
+</main>

@@ -1,0 +1,271 @@
+// Nadeeni Design System — logo-derived color palette
+$bg-dark: #0B0F19;
+$bg-deep: #0e1420;
+$bg-black: #070A12;
+$green-neon: #3DAF8A;  // Logo emerald-green (person figure)
+$blue-neon: #5992EC;   // Logo steel-blue (wave/ear graphic)
+$gold-accent: #F5A623; // Logo golden-yellow accent
+$white: #FFFFFF;
+$grey-dark: #6B7280;
+$grey-light: #9CA3AF;
+
+:root {
+  --color-bg-dark: #{$bg-dark};
+  --color-bg-deep: #{$bg-deep};
+  --color-bg-black: #{$bg-black};
+  --color-purple: #{$blue-neon};   // kept alias for backwards compat
+  --color-cyan: #{$green-neon};    // kept alias for backwards compat
+  --color-green: #{$green-neon};
+  --color-blue: #{$blue-neon};
+  --color-gold: #{$gold-accent};
+  --color-white: #{$white};
+
+  --font-cyber: 'Orbitron', 'Space Grotesk', sans-serif;
+  --font-space: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+// Global Core Styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--color-bg-black);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body.cinematic-theme {
+  background-color: var(--color-bg-dark);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(61, 175, 138, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(89, 146, 236, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(245, 166, 35, 0.02) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Custom Futuristic Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-black);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(61, 175, 138, 0.35);
+  border-radius: 4px;
+  border: 1px solid rgba(89, 146, 236, 0.3);
+  transition: all 0.3s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(89, 146, 236, 0.5);
+  box-shadow: 0 0 8px var(--color-blue);
+}
+
+// Glassmorphism Utilities
+@mixin glass {
+  background: rgba(11, 15, 25, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+@mixin glass-green {
+  background: rgba(11, 15, 25, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(61, 175, 138, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(61, 175, 138, 0.12);
+}
+
+@mixin glass-blue {
+  background: rgba(11, 15, 25, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(89, 146, 236, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(89, 146, 236, 0.12);
+}
+
+// Legacy aliases
+@mixin glass-purple { @include glass-blue; }
+@mixin glass-cyan   { @include glass-green; }
+
+// Keyframes
+@keyframes pulse-purple {
+  0%, 100% { box-shadow: 0 0 10px rgba(89, 146, 236, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(89, 146, 236, 0.65); }
+}
+
+@keyframes pulse-cyan {
+  0%, 100% { box-shadow: 0 0 10px rgba(61, 175, 138, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(61, 175, 138, 0.65); }
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 10px rgba(61, 175, 138, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(61, 175, 138, 0.65); }
+}
+
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 10px rgba(89, 146, 236, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(89, 146, 236, 0.65); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 10px rgba(245, 166, 35, 0.25); }
+  50% { box-shadow: 0 0 28px rgba(245, 166, 35, 0.55); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 0.99;
+    filter: drop-shadow(0 0 2px rgba(89, 146, 236, 0.5)) drop-shadow(0 0 10px rgba(89, 146, 236, 0.5));
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.4;
+    filter: none;
+  }
+}
+
+// Global Custom Utility Classes
+.glass-panel {
+  @include glass;
+  border-radius: 12px;
+}
+
+.glow-green {
+  animation: pulse-green 4s infinite alternate;
+}
+
+.glow-blue {
+  animation: pulse-blue 4s infinite alternate;
+}
+
+.glow-gold {
+  animation: pulse-gold 4s infinite alternate;
+}
+
+// Legacy aliases
+.glow-purple { animation: pulse-blue 4s infinite alternate; }
+.glow-cyan   { animation: pulse-green 4s infinite alternate; }
+
+.cyber-button {
+  font-family: var(--font-cyber);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.85rem;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--color-white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    transition: all 0.5s ease;
+  }
+
+  &:hover {
+    border-color: var(--color-cyan);
+    color: var(--color-cyan);
+    box-shadow: 0 0 15px rgba(50, 214, 165, 0.3);
+    text-shadow: 0 0 5px rgba(50, 214, 165, 0.5);
+    transform: translateY(-2px);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &.primary {
+    background: linear-gradient(135deg, #3DAF8A 0%, #5992EC 100%);
+    border: none;
+    box-shadow: 0 0 20px rgba(61, 175, 138, 0.35);
+
+    &:hover {
+      background: linear-gradient(135deg, #5992EC 0%, #3DAF8A 100%);
+      color: var(--color-white);
+      box-shadow: 0 0 30px rgba(61, 175, 138, 0.55);
+      text-shadow: none;
+    }
+  }
+}
+
+// CRT Screen overlays
+.crt-effects {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  
+  &::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 100;
+    background-size: 100% 4px, 6px 100%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    z-index: 101;
+  }
+}
+
+.scanline-bar {
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(89, 146, 236, 0) 0%, rgba(89, 146, 236, 0.07) 50%, rgba(89, 146, 236, 0) 100%);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9998;
+  pointer-events: none;
+  animation: scanline 12s linear infinite;
+}
+
