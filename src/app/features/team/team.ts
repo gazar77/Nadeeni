@@ -10,9 +10,11 @@ interface Member {
   image: string;
   theme: 'green' | 'blue' | 'gold';
   socials: {
-    github: string;
-    linkedin: string;
-    email: string;
+    github?: string;
+    linkedin?: string;
+    email?: string;
+    behance?: string;
+    portfolio?: string;
   };
 }
 
@@ -46,6 +48,9 @@ interface Member {
           [style.--card-theme-color]="themeColors[m.theme]"
           [style.--card-theme-rgb]="themeRgbs[m.theme]"
         >
+          <!-- Holographic Dynamic Reflection overlay -->
+          <div class="holographic-reflection"></div>
+
           <!-- Holographic Photo Container -->
           <div class="portrait-container">
             <!-- Grid Backdrop -->
@@ -100,14 +105,20 @@ interface Member {
 
             <!-- Cyber Social Links -->
             <div class="social-row">
-              <a [href]="m.socials.github" target="_blank" rel="noopener" class="social-icon" aria-label="GitHub">
+              <a *ngIf="m.socials.github" [href]="m.socials.github" target="_blank" rel="noopener" class="social-icon" aria-label="GitHub">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
               </a>
-              <a [href]="m.socials.linkedin" target="_blank" rel="noopener" class="social-icon" aria-label="LinkedIn">
+              <a *ngIf="m.socials.linkedin" [href]="m.socials.linkedin" target="_blank" rel="noopener" class="social-icon" aria-label="LinkedIn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
               </a>
-              <a [href]="'mailto:' + m.socials.email" class="social-icon" aria-label="Email">
+              <a *ngIf="m.socials.email" [href]="'mailto:' + m.socials.email" class="social-icon" aria-label="Email">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </a>
+              <a *ngIf="m.socials.behance" [href]="m.socials.behance" target="_blank" rel="noopener" class="social-icon" aria-label="Behance">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-dasharray="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10h-7M14 14h7a3.5 3.5 0 0 0-7 0zm-7 1.5h-3v-3h3a1.5 1.5 0 0 0 0-3h-3v-3h3a1.5 1.5 0 0 1 0 3 1.5 1.5 0 0 1 0 3zM15 7h5" /></svg>
+              </a>
+              <a *ngIf="m.socials.portfolio" [href]="m.socials.portfolio" target="_blank" rel="noopener" class="social-icon" aria-label="Portfolio">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
               </a>
             </div>
           </div>
@@ -574,14 +585,14 @@ export class Team {
       theme: 'blue',
       scanCode: 'SECURE_NODE_M.M_88x22',
       socials: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'mohamed.mostafa@example.com'
+        github: 'https://github.com/gazar77',
+        linkedin: 'https://www.linkedin.com/in/mohamed-mostafa-b4b483251',
+        email: 'abvfxkiwkk55ggj@gmail.com'
       }
     },
     {
       id: 'yahia-n',
-      name: 'Yahia Nageh',
+      name: 'Yahya Nageh',
       role: 'Flutter Developer',
       desc: 'Creative mobile developer focused on building smooth cross-platform applications, custom canvas renderings, and highly responsive user interfaces.',
       skills: ['Flutter', 'Firebase', 'UI Development', 'Mobile Performance', 'Dart'],
@@ -589,9 +600,9 @@ export class Team {
       theme: 'green',
       scanCode: 'SECURE_NODE_Y.N_14x09',
       socials: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'yahia.nageh@example.com'
+        github: 'https://github.com/yahya512/Style-hup-.git',
+        linkedin: 'https://www.linkedin.com/in/yahya-nageh/',
+        email: 'yahyan.nageh@gmail.com'
       }
     },
     {
@@ -604,9 +615,11 @@ export class Team {
       theme: 'gold',
       scanCode: 'SECURE_NODE_M.B_40x77',
       socials: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'mohamed.bahaa@example.com'
+        github: 'https://github.com/mo-bahaa2',
+        linkedin: 'https://www.linkedin.com/in/mohamed-bahaa-salah-b9a914275/',
+        email: 'mohamedelbehiry2004@gmail.com',
+        behance: 'https://www.behance.net/mohamedbahaa40',
+        portfolio: 'https://potofolio-pi.vercel.app/'
       }
     },
     {
@@ -619,9 +632,9 @@ export class Team {
       theme: 'green',
       scanCode: 'SECURE_NODE_M.MA_55x61',
       socials: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'mostafa.mahmoud@example.com'
+        github: 'https://github.com/MostafaMahmoudegy10',
+        linkedin: 'https://www.linkedin.com/in/mostafa-mahmoud-egy10/',
+        email: 'mostafa.mahmoudegy10@gmail.com'
       }
     },
     {
@@ -634,9 +647,8 @@ export class Team {
       theme: 'blue',
       scanCode: 'SECURE_NODE_Y.M_03x95',
       socials: {
-        github: 'https://github.com',
-        linkedin: 'https://linkedin.com',
-        email: 'youssef.medhat@example.com'
+        github: 'https://github.com/YoussefHassan4002',
+        linkedin: 'https://www.linkedin.com/in/youssef-hassan-215921389/'
       }
     }
   ];
@@ -658,6 +670,10 @@ export class Team {
 
     this.cardTransforms[index] =
       `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.025)`;
+
+    // Inject dynamic CSS properties for real-time 3D holographic sheen reflection
+    card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+    card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
   }
 
   onCardMouseLeave(index: number): void {

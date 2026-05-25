@@ -48,16 +48,30 @@ import { Component } from '@angular/core';
                 <span class="corner-bracket">]</span>
               </div>
 
-              <button type="submit" class="cyber-button primary glow-cyan submit-btn">
-                SUBMIT PROJECT DISPATCH
-                <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor">
+              <button type="submit" class="cyber-button primary glow-cyan submit-btn" [disabled]="isSubmitting">
+                {{ isSubmitting ? 'DISPATCHING PACKETS...' : 'SUBMIT PROJECT DISPATCH' }}
+                <svg *ngIf="!isSubmitting" xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor">
                   <path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v134l240 66-240 66v134Z"/>
                 </svg>
+                <svg *ngIf="isSubmitting" class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="8"></circle></svg>
               </button>
             </form>
           </shared-glow-frame>
         </div>
 
+      </div>
+
+      <!-- Futuristic Cyber Notification Toast -->
+      <div 
+        class="cyber-notification-toast" 
+        [class.active]="showToast" 
+        [class.error-theme]="toastTheme === 'error'"
+      >
+        <div class="toast-header">
+          <span class="status-pulse"></span>
+          <span>{{ toastHeader }}</span>
+        </div>
+        <div class="toast-body" [innerHTML]="toastBody"></div>
       </div>
     </section>
   `,
@@ -242,14 +256,81 @@ import { Component } from '@angular/core';
       width: 100%;
       margin-top: 8px;
     }
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   `],
   standalone: false
 })
 export class Contact {
-  onSubmit(event: Event): void {
+  showToast = false;
+  toastHeader = '';
+  toastBody = '';
+  toastTheme: 'success' | 'error' = 'success';
+  isSubmitting = false;
+
+  async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
+    if (this.isSubmitting) return;
+
     const form = event.target as HTMLFormElement;
-    alert('[SYSTEM_RESOLVE]: Dispatch request received. Commencing integration protocols.');
-    form.reset();
+    const formData = new FormData(form);
+    
+    // Custom system boot notification
+    this.triggerToast(
+      'CONNECTING_NODES', 
+      'Syncing parameters... Dispatching system packet through secure quantum channel.', 
+      'success'
+    );
+    this.isSubmitting = true;
+
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/Nadeeni.Group@gmail.com', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success === 'true') {
+        this.triggerToast(
+          'INTEGRATION_SUCCESSFUL',
+          'SYSTEM_RESOLVE: Dispatch request successfully synchronized and delivered to [Nadeeni.Group@gmail.com]. Protocols initialized!',
+          'success'
+        );
+        form.reset();
+      } else {
+        throw new Error(result.message || 'Transmission hand-shake rejected.');
+      }
+    } catch (error: any) {
+      console.error(error);
+      this.triggerToast(
+        'HANDSHAKE_ERROR',
+        `PROTOCOL_FAILURE: ${error.message || 'Unable to route transmission packets. Check your uplink/connection and retry.'}`,
+        'error'
+      );
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  private triggerToast(header: string, body: string, theme: 'success' | 'error'): void {
+    this.toastHeader = `[ ${header} ]`;
+    this.toastBody = body;
+    this.toastTheme = theme;
+    this.showToast = true;
+
+    // Auto fade-out after 5.5 seconds
+    setTimeout(() => {
+      if (this.toastHeader === `[ ${header} ]`) {
+        this.showToast = false;
+      }
+    }, 5500);
   }
 }

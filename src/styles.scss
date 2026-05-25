@@ -269,3 +269,103 @@ body.cinematic-theme {
   animation: scanline 12s linear infinite;
 }
 
+/* === 3D Holographic Reflection Sheen Effect === */
+.holographic-reflection {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: 
+    radial-gradient(
+      circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(var(--card-theme-rgb, 89, 146, 236), 0.08) 30%,
+      transparent 70%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(var(--card-theme-rgb, 89, 146, 236), 0.03) 30%,
+      rgba(255, 255, 255, 0.08) 48%,
+      rgba(var(--card-theme-rgb, 89, 146, 236), 0.03) 55%,
+      transparent 100%
+    );
+  background-size: 100% 100%, 200% 200%;
+  background-position: 0 0, var(--mouse-x, 50%) var(--mouse-y, 50%);
+  z-index: 11;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  will-change: background, background-position;
+}
+
+.member-card:hover .holographic-reflection {
+  opacity: 1;
+}
+
+/* === Cybernetic Success Toast Notification === */
+.cyber-notification-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 10000;
+  max-width: 420px;
+  padding: 16px 24px;
+  background: rgba(8, 12, 22, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-cyan);
+  border-radius: 6px;
+  box-shadow: 0 0 25px rgba(61, 175, 138, 0.25);
+  transform: translateY(100px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &.error-theme {
+    border-color: #ff4a4a;
+    box-shadow: 0 0 25px rgba(255, 74, 74, 0.25);
+    
+    .toast-header {
+      color: #ff4a4a;
+      .status-pulse {
+        background-color: #ff4a4a;
+        box-shadow: 0 0 8px #ff4a4a;
+      }
+    }
+  }
+
+  .toast-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-family: var(--font-cyber);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-cyan);
+    letter-spacing: 1px;
+    
+    .status-pulse {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-cyan);
+      box-shadow: 0 0 8px var(--color-cyan);
+      animation: blink-dot 1s infinite alternate;
+    }
+  }
+
+  .toast-body {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+  }
+}
+
