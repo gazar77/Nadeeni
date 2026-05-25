@@ -279,6 +279,12 @@ export class Contact {
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
     
+    // Create a plain object from the form data
+    const formObject: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      formObject[key] = value.toString();
+    });
+
     // Custom system boot notification
     this.triggerToast(
       'CONNECTING_NODES', 
@@ -290,15 +296,16 @@ export class Contact {
     try {
       const response = await fetch('https://formsubmit.co/ajax/Nadeeni.Group@gmail.com', {
         method: 'POST',
-        body: formData,
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify(formObject)
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success === 'true') {
+      if (response.ok && (result.success === 'true' || result.success === true)) {
         this.triggerToast(
           'INTEGRATION_SUCCESSFUL',
           'SYSTEM_RESOLVE: Dispatch request successfully synchronized and delivered to [Nadeeni.Group@gmail.com]. Protocols initialized!',
