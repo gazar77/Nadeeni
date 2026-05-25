@@ -27,6 +27,12 @@ $grey-light: #9CA3AF;
 }
 
 // Global Core Styles
+@media (hover: hover) and (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

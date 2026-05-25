@@ -1,4 +1,9 @@
-import { Component, ElementRef, HostListener, QueryList, ViewChildren } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface Member {
   id: string;
@@ -241,8 +246,14 @@ interface Member {
       position: relative;
       transition: box-shadow 0.3s ease;
       transform-style: preserve-3d;
-      will-change: transform;
+      will-change: transform, box-shadow;
       border-radius: 12px;
+    }
+
+    .member-card:hover {
+      box-shadow: 
+        0 15px 45px rgba(0, 0, 0, 0.65),
+        var(--shadow-x, 0px) var(--shadow-y, 8px) 30px rgba(var(--card-theme-rgb), 0.18);
     }
 
     /* === Portrait Container === */
@@ -559,8 +570,9 @@ interface Member {
   `],
   standalone: false
 })
-export class Team {
+export class Team implements OnInit, AfterViewInit {
   cardTransforms: string[] = [];
+  private isBrowser = false;
 
   themeColors: Record<string, string> = {
     green: '#3DAF8A',
@@ -653,11 +665,46 @@ export class Team {
     }
   ];
 
-  constructor() {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.cardTransforms = this.members.map(() => 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)');
   }
 
+  ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // Header fade-up scroll entry
+    gsap.from('.team-section .team-header', {
+      y: 45,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.team-section .team-header',
+        start: 'top 85%'
+      }
+    });
+
+    // Spring cards staggered scroll entry
+    gsap.from('.member-card', {
+      y: 90,
+      opacity: 0,
+      scale: 0.85,
+      duration: 1.6,
+      ease: 'elastic.out(1.1, 0.72)', // Elegant spring bounce
+      stagger: 0.15,
+      scrollTrigger: {
+        trigger: '.team-grid',
+        start: 'top 82%',
+        toggleActions: 'play none none none'
+      }
+    });
+  }
+
   onCardMouseMove(event: MouseEvent, index: number): void {
+    if (!this.isBrowser) return;
     const card = (event.currentTarget as HTMLElement);
     const rect = card.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -671,9 +718,15 @@ export class Team {
     this.cardTransforms[index] =
       `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.025)`;
 
-    // Inject dynamic CSS properties for real-time 3D holographic sheen reflection
+    // Calculate light and depth shadow offset direction (moves oppositely to cursor for true 3D visual height)
+    const shadowX = ((x - cx) / cx) * -16;
+    const shadowY = ((y - cy) / cy) * -16;
+
+    // Inject dynamic CSS properties for real-time 3D holographic sheen reflection and depth shadows
     card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
     card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+    card.style.setProperty('--shadow-x', `${shadowX}px`);
+    card.style.setProperty('--shadow-y', `${shadowY}px`);
   }
 
   onCardMouseLeave(index: number): void {

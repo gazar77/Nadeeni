@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, AfterViewInit, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface TechNode {
   name: string;
@@ -12,9 +17,12 @@ interface TechNode {
   selector: 'feature-tech-stack',
   template: `
     <section class="tech-section" id="tech">
+      <!-- Interactive canvas-based star field background -->
+      <shared-particle-bg></shared-particle-bg>
+      
       <div class="grid-backdrop"></div>
-      <div class="ambient-glow purple"></div>
-      <div class="ambient-glow cyan"></div>
+      <div class="ambient-glow purple" #nebulaPurple></div>
+      <div class="ambient-glow cyan" #nebulaCyan></div>
 
       <div class="tech-header">
         <span class="hud-category">[ COGNITIVE_TECTONIC_SPHERE ]</span>
@@ -26,7 +34,7 @@ interface TechNode {
       </div>
 
       <!-- Universe Container with Mouse-Interactive 3D Tilt -->
-      <div class="universe-wrapper" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+      <div class="universe-wrapper" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()" #universeWrapper>
         <div class="universe-system" [style.transform]="tiltStyle" [class.paused]="paused">
           
           <!-- Concentric Orbit Lines -->
@@ -108,19 +116,24 @@ interface TechNode {
       width: 600px; height: 600px;
       border-radius: 50%;
       filter: blur(140px);
-      opacity: 0.06;
+      opacity: 0.08;
       pointer-events: none;
       z-index: 1;
+      will-change: transform;
     }
 
     .ambient-glow.purple {
       top: 10%; left: -200px;
       background: var(--color-purple);
+      transform: translate(var(--nebula-x, 0px), var(--nebula-y, 0px));
+      transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
     }
 
     .ambient-glow.cyan {
       bottom: 10%; right: -200px;
       background: var(--color-cyan);
+      transform: translate(calc(var(--nebula-x, 0px) * -1), calc(var(--nebula-y, 0px) * -1));
+      transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
     }
 
     .tech-header {
@@ -196,6 +209,7 @@ interface TechNode {
       border-radius: 50%;
       pointer-events: none;
       transform-style: preserve-3d;
+      will-change: transform, opacity;
       
       &.inner {
         width: 280px; height: 280px;
@@ -224,6 +238,7 @@ interface TechNode {
       cursor: pointer;
       transform-style: preserve-3d;
       transform: translateZ(20px);
+      will-change: transform, opacity;
     }
 
     .core-glow {
@@ -273,6 +288,7 @@ interface TechNode {
       height: 0;
       z-index: 5;
       transform-style: preserve-3d;
+      will-change: transform, opacity;
       
       /* Circular orbit trajectory via CSS Keyframes! */
       animation: orbital-rotation var(--spin-duration) infinite linear;
@@ -458,10 +474,13 @@ interface TechNode {
   `],
   standalone: false
 })
-export class TechStack {
+export class TechStack implements OnInit, OnDestroy, AfterViewInit {
   paused = false;
   hoveredNode: TechNode | null = null;
   tiltStyle = '';
+  private isBrowser = false;
+
+  @ViewChild('universeWrapper', { static: true }) universeWrapper!: ElementRef<HTMLDivElement>;
 
   // Concentric Orbit nodes positioning (10 items)
   // Orbit Radii: Inner (140px), Middle (230px), Outer (320px)
@@ -483,16 +502,87 @@ export class TechStack {
     { name: '.NET', theme: 'cyan', angle: 240, orbitRadius: 320, desc: 'Scalable C# backends featuring modular architecture blueprints and enterprise API pipelines.' }
   ];
 
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit(): void {}
+
+  ngOnDestroy(): void {}
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // 1. Header scroll reveal
+    gsap.from('.tech-section .tech-header', {
+      y: 40,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.tech-section .tech-header',
+        start: 'top 85%'
+      }
+    });
+
+    // 2. Expand orbit rings on scroll entry
+    gsap.from('.orbit-line', {
+      scale: 0.1,
+      opacity: 0,
+      duration: 2.2,
+      ease: 'power4.out',
+      stagger: 0.25,
+      scrollTrigger: {
+        trigger: this.universeWrapper.nativeElement,
+        start: 'top 80%'
+      }
+    });
+
+    // 3. Scale-up central core hub with overshoot spring bounce
+    gsap.from('.core-hub', {
+      scale: 0,
+      opacity: 0,
+      duration: 1.6,
+      ease: 'back.out(2)',
+      scrollTrigger: {
+        trigger: this.universeWrapper.nativeElement,
+        start: 'top 80%'
+      }
+    });
+
+    // 4. Staggered reveal pop-in for orbiting tech nodes
+    gsap.from('.tech-node-container', {
+      scale: 0,
+      opacity: 0,
+      duration: 1.4,
+      ease: 'back.out(1.6)',
+      stagger: 0.08,
+      scrollTrigger: {
+        trigger: this.universeWrapper.nativeElement,
+        start: 'top 80%'
+      }
+    });
+  }
+
   onMouseMove(event: MouseEvent): void {
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (!this.isBrowser) return;
+    const wrapper = this.universeWrapper.nativeElement;
+    const rect = wrapper.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     
-    // Center normalized values from -15 to 15
+    // Smooth 3D perspective tilt
     const tiltX = ((y / rect.height) - 0.5) * -20;
     const tiltY = ((x / rect.width) - 0.5) * 20;
 
     this.tiltStyle = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+    // Inject shifting coordinate vars for deep space nebula movement
+    const shiftX = ((x / rect.width) - 0.5) * 45;
+    const shiftY = ((y / rect.height) - 0.5) * 45;
+
+    wrapper.style.setProperty('--nebula-x', `${shiftX}px`);
+    wrapper.style.setProperty('--nebula-y', `${shiftY}px`);
   }
 
   onMouseLeave(): void {

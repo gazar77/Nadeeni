@@ -1,4 +1,9 @@
-import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, AfterViewInit, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'feature-story-timeline',
@@ -10,7 +15,7 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       <div class="glow-backdrop purple"></div>
       <div class="glow-backdrop cyan"></div>
 
-      <div class="timeline-header">
+      <div class="timeline-header" #timelineHeader>
         <span class="hud-category">[ SYSTEM_CHRONOLOGY ]</span>
         <h2 class="section-title">The Nadeeni Chronicle</h2>
         <div class="glowing-divider"></div>
@@ -19,12 +24,12 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       <div class="timeline-container">
         <!-- Interactive Vertical Tracking Laser -->
         <div class="vertical-track">
-          <div class="tracker-laser" [style.height.%]="scrollPercent"></div>
+          <div class="tracker-laser"></div>
         </div>
 
         <!-- Timeline Chapter 1 -->
-        <div class="timeline-item chapter-node-0" [class.visible]="activeChapters[0]">
-          <div class="timeline-marker" [class.active]="activeChapters[0]">
+        <div class="timeline-item chapter-node-0">
+          <div class="timeline-marker">
             <span class="marker-glow"></span>
             <span class="number">01</span>
           </div>
@@ -45,8 +50,8 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
         </div>
 
         <!-- Timeline Chapter 2 -->
-        <div class="timeline-item chapter-node-1" [class.visible]="activeChapters[1]">
-          <div class="timeline-marker" [class.active]="activeChapters[1]">
+        <div class="timeline-item chapter-node-1">
+          <div class="timeline-marker">
             <span class="marker-glow"></span>
             <span class="number">02</span>
           </div>
@@ -68,8 +73,8 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
         </div>
 
         <!-- Timeline Chapter 3 -->
-        <div class="timeline-item chapter-node-2" [class.visible]="activeChapters[2]">
-          <div class="timeline-marker" [class.active]="activeChapters[2]">
+        <div class="timeline-item chapter-node-2">
+          <div class="timeline-marker">
             <span class="marker-glow"></span>
             <span class="number">03</span>
           </div>
@@ -91,8 +96,8 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
         </div>
 
         <!-- Timeline Chapter 4 -->
-        <div class="timeline-item chapter-node-3" [class.visible]="activeChapters[3]">
-          <div class="timeline-marker" [class.active]="activeChapters[3]">
+        <div class="timeline-item chapter-node-3">
+          <div class="timeline-marker">
             <span class="marker-glow"></span>
             <span class="number">04</span>
           </div>
@@ -212,10 +217,11 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       position: absolute;
       top: 0; left: 0;
       width: 100%;
+      height: 0;
       background: linear-gradient(to bottom, var(--color-purple), var(--color-cyan));
       box-shadow: 0 0 12px var(--color-cyan), 0 0 20px var(--color-purple);
       border-radius: 1px;
-      transition: height 0.1s ease-out;
+      will-change: height;
     }
 
     /* Timeline Items */
@@ -226,16 +232,11 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       display: flex;
       justify-content: flex-end;
       min-height: 200px;
-      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-      opacity: 0;
+      opacity: 0; /* Animated via GSAP */
     }
 
     .timeline-item:nth-child(even) {
       justify-content: flex-start;
-    }
-
-    .timeline-item.visible {
-      opacity: 1;
     }
 
     /* Markers */
@@ -253,7 +254,7 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
     }
 
     .timeline-marker.active {
@@ -290,16 +291,7 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
     .timeline-card-wrapper {
       width: 45%;
       position: relative;
-      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .timeline-item.chapter-node-0 .timeline-card-wrapper { transform: translateX(-40px); }
-    .timeline-item.chapter-node-1 .timeline-card-wrapper { transform: translateX(40px); }
-    .timeline-item.chapter-node-2 .timeline-card-wrapper { transform: translateX(-40px); }
-    .timeline-item.chapter-node-3 .timeline-card-wrapper { transform: translateX(40px); }
-
-    .timeline-item.visible .timeline-card-wrapper {
-      transform: translateX(0) !important;
+      will-change: transform, opacity;
     }
 
     .chapter-date {
@@ -362,7 +354,6 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
       .timeline-card-wrapper {
         width: calc(100% - 60px);
         margin-left: 60px !important;
-        transform: translateX(30px) !important;
       }
       .timeline-item {
         justify-content: flex-start !important;
@@ -375,69 +366,97 @@ import { Component, ElementRef, HostListener, OnInit, OnDestroy } from '@angular
   `],
   standalone: false
 })
-export class StoryTimeline implements OnInit, OnDestroy {
-  scrollPercent = 0;
+export class StoryTimeline implements OnInit, OnDestroy, AfterViewInit {
   activeChapters: boolean[] = [false, false, false, false];
-  private observer?: IntersectionObserver;
+  private isBrowser = false;
+  
+  @ViewChild('timelineHeader', { static: true }) timelineHeader!: ElementRef<HTMLDivElement>;
 
-  ngOnInit(): void {
-    this.calculateScroll();
-    this.setupIntersectionObserver();
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
   }
+
+  ngOnInit(): void {}
 
   ngOnDestroy(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+    // ScrollTrigger does cleanup automatically when components destroy
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    this.calculateScroll();
-  }
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
 
-  private calculateScroll(): void {
-    const timelineEl = document.getElementById('story');
-    if (!timelineEl) return;
+    // 1. Title Fade Up Reveal
+    gsap.from(this.timelineHeader.nativeElement, {
+      y: 40,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: this.timelineHeader.nativeElement,
+        start: 'top 85%'
+      }
+    });
 
-    const rect = timelineEl.getBoundingClientRect();
-    const timelineHeight = rect.height;
-    
-    // Calculate how far down the timeline element has scrolled relative to the viewport
-    const scrolled = window.innerHeight - rect.top;
-    
-    if (scrolled < 0) {
-      this.scrollPercent = 0;
-    } else if (scrolled > timelineHeight) {
-      this.scrollPercent = 100;
-    } else {
-      this.scrollPercent = (scrolled / timelineHeight) * 100;
-    }
-  }
+    // 2. Smoothly track laser timeline height on scroll
+    gsap.to('.tracker-laser', {
+      height: '100%',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.timeline-container',
+        start: 'top 30%',
+        end: 'bottom 70%',
+        scrub: 0.8
+      }
+    });
 
-  private setupIntersectionObserver(): void {
-    const options = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.2 // Trigger when 20% of the element is visible
-    };
-
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const classes = entry.target.className;
-          if (classes.includes('chapter-node-0')) this.activeChapters[0] = true;
-          if (classes.includes('chapter-node-1')) this.activeChapters[1] = true;
-          if (classes.includes('chapter-node-2')) this.activeChapters[2] = true;
-          if (classes.includes('chapter-node-3')) this.activeChapters[3] = true;
+    // 3. Staggered 3D chapter-by-chapter entry reveals
+    const items = document.querySelectorAll('.timeline-item');
+    items.forEach((item, index) => {
+      const card = item.querySelector('.timeline-card-wrapper');
+      const marker = item.querySelector('.timeline-marker');
+      const isLeft = card?.classList.contains('left');
+      
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 82%',
+          toggleActions: 'play none none none'
         }
       });
-    }, options);
 
-    // Track each timeline item element
-    setTimeout(() => {
-      const items = document.querySelectorAll('.timeline-item');
-      items.forEach((item) => this.observer?.observe(item));
-    }, 200);
+      // Reset base element opacity to show container
+      gsap.set(item, { opacity: 1 });
+      
+      // Initial 3D tilt and translate settings for cinematic flip
+      gsap.set(card, {
+        opacity: 0,
+        x: isLeft ? -90 : 90,
+        rotateY: isLeft ? 25 : -25,
+        transformPerspective: 1200
+      });
+      
+      gsap.set(marker, {
+        scale: 0,
+        opacity: 0
+      });
+
+      tl.to(marker, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.6,
+        ease: 'back.out(1.8)',
+        onStart: () => {
+          this.activeChapters[index] = true;
+          if (marker) marker.classList.add('active');
+        }
+      })
+      .to(card, {
+        opacity: 1,
+        x: 0,
+        rotateY: 0,
+        duration: 1.4,
+        ease: 'power4.out'
+      }, '-=0.35');
+    });
   }
 }

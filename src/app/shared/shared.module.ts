@@ -4,12 +4,14 @@ import { CommonModule } from '@angular/common';
 import { ParticleBg } from './components/particle-bg';
 import { GlowFrame } from './components/glow-frame';
 import { GlassCard } from './components/glass-card';
+import { CursorComponent } from './components/cursor';
 
 @NgModule({
   declarations: [
     ParticleBg,
     GlowFrame,
-    GlassCard
+    GlassCard,
+    CursorComponent
   ],
   imports: [
     CommonModule
@@ -18,7 +20,9 @@ import { GlassCard } from './components/glass-card';
     ParticleBg,
     GlowFrame,
     GlassCard,
+    CursorComponent,
     CommonModule
   ]
 })
 export class SharedModule { }
+

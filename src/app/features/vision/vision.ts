@@ -1,4 +1,9 @@
-import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, AfterViewInit, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'feature-vision',
@@ -11,8 +16,7 @@ import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
         
         <div class="phrases-wrapper">
           <div class="phrase-block phrase-node-{{i}}" 
-               *ngFor="let phrase of phrases; let i = index" 
-               [class.active]="activePhrases[i]">
+               *ngFor="let phrase of phrases; let i = index">
             <p class="reveal-text" [attr.data-text]="phrase">{{ phrase }}</p>
           </div>
         </div>
@@ -53,6 +57,7 @@ import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
       margin-bottom: 56px;
       display: block;
       text-shadow: 0 0 8px rgba(61, 175, 138, 0.3);
+      will-change: transform, opacity;
     }
 
     .phrases-wrapper {
@@ -65,7 +70,8 @@ import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
       opacity: 0.12;
       filter: blur(8px);
       transform: translateY(32px);
-      transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.8s ease, filter 0.8s ease, transform 0.8s ease;
+      will-change: opacity, filter, transform;
     }
 
     .phrase-block.active {
@@ -78,24 +84,30 @@ import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
       font-family: var(--font-cyber);
       font-size: 2.8rem;
       font-weight: 800;
-      color: var(--color-white);
       line-height: 1.3;
       text-transform: uppercase;
       letter-spacing: 2px;
       position: relative;
       display: inline-block;
+      background: linear-gradient(135deg, #ffffff 40%, rgba(255, 255, 255, 0.4) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: none;
     }
 
-    .phrase-block.active .reveal-text {
-      animation: flicker-text 1.5s ease-out;
+    /* Kinetic shifting rainbow gradient highlight for the final phrase */
+    .phrase-node-2 .reveal-text {
+      background: linear-gradient(90deg, #3DAF8A, #5992EC, #F5A623, #3DAF8A);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient-shift 8s infinite linear;
+      filter: drop-shadow(0 0 15px rgba(89, 146, 236, 0.15));
     }
 
-    @keyframes flicker-text {
-      0%, 100% { opacity: 1; }
-      15% { opacity: 0.8; }
-      17% { opacity: 1; }
-      30% { opacity: 0.6; }
-      35% { opacity: 1; }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
     }
 
     @media (max-width: 768px) {
@@ -110,46 +122,85 @@ import { Component, ElementRef, OnInit, OnDestroy } from '@angular/core';
   `],
   standalone: false
 })
-export class Vision implements OnInit, OnDestroy {
+export class Vision implements OnInit, OnDestroy, AfterViewInit {
   phrases: string[] = [
     'We believe software should feel alive.',
     'We don’t just build apps.',
     'We build experiences.'
   ];
-  activePhrases: boolean[] = [false, false, false];
-  private observer?: IntersectionObserver;
+  private isBrowser = false;
 
-  ngOnInit(): void {
-    this.setupIntersectionObserver();
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
-  ngOnDestroy(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
-  }
+  ngOnInit(): void {}
 
-  private setupIntersectionObserver(): void {
-    const options = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.3
-    };
+  ngOnDestroy(): void {}
 
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const classes = entry.target.className;
-          if (classes.includes('phrase-node-0')) this.activePhrases[0] = true;
-          if (classes.includes('phrase-node-1')) this.activePhrases[1] = true;
-          if (classes.includes('phrase-node-2')) this.activePhrases[2] = true;
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // 1. Tag reveal
+    gsap.from('.vision-section .hud-tag', {
+      y: 20,
+      opacity: 0,
+      duration: 1,
+      scrollTrigger: {
+        trigger: '.vision-section .hud-tag',
+        start: 'top 85%'
+      }
+    });
+
+    // 2. Custom hacker letter scramble sequence reveal per phrase
+    const blocks = document.querySelectorAll('.phrase-block');
+    blocks.forEach((block, blockIndex) => {
+      const textEl = block.querySelector('.reveal-text') as HTMLElement;
+      if (!textEl) return;
+      const originalText = textEl.textContent || '';
+      
+      // Cyber characters list for scrambling
+      const scrambleChars = 'XYZ0123456789#%&@!_[]+<>';
+
+      ScrollTrigger.create({
+        trigger: block,
+        start: 'top 80%',
+        onEnter: () => {
+          block.classList.add('active');
+
+          const scrambleObj = { progress: 0 };
+          gsap.to(scrambleObj, {
+            progress: 1,
+            duration: 1.8,
+            ease: 'power2.out',
+            onUpdate: () => {
+              const currentResolvedLen = Math.floor(scrambleObj.progress * originalText.length);
+              let tempResult = '';
+              
+              for (let i = 0; i < originalText.length; i++) {
+                if (i < currentResolvedLen) {
+                  // Keep correct resolved character
+                  tempResult += originalText[i];
+                } else if (originalText[i] === ' ') {
+                  // Keep spaces clean
+                  tempResult += ' ';
+                } else if (i === currentResolvedLen || Math.random() < 0.3) {
+                  // Scramble with futuristic hacker symbols
+                  tempResult += scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+                } else {
+                  // Hidden buffer using non-breaking spaces
+                  tempResult += '&nbsp;';
+                }
+              }
+              
+              textEl.innerHTML = tempResult;
+            },
+            onComplete: () => {
+              textEl.textContent = originalText;
+            }
+          });
         }
       });
-    }, options);
-
-    setTimeout(() => {
-      const elements = document.querySelectorAll('.phrase-block');
-      elements.forEach((el) => this.observer?.observe(el));
-    }, 200);
+    });
   }
 }

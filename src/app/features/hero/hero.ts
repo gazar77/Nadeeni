@@ -1,4 +1,9 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, AfterViewInit, ElementRef, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'feature-hero',
@@ -7,14 +12,32 @@ import { Component, HostListener } from '@angular/core';
       <!-- Dynamic lighting globes -->
       <div class="glow-sphere purple"></div>
       <div class="glow-sphere cyan"></div>
+
+      <!-- 3D Glassmorphic Cubes in Background -->
+      <div class="cube-container cube-1" #cube1>
+        <div class="face front"></div>
+        <div class="face back"></div>
+        <div class="face right"></div>
+        <div class="face left"></div>
+        <div class="face top"></div>
+        <div class="face bottom"></div>
+      </div>
+      <div class="cube-container cube-2" #cube2>
+        <div class="face front"></div>
+        <div class="face back"></div>
+        <div class="face right"></div>
+        <div class="face left"></div>
+        <div class="face top"></div>
+        <div class="face bottom"></div>
+      </div>
       
       <div class="hero-container">
         <!-- 3D Interactive Parallax Panel -->
-        <div class="interactive-grid" [style.transform]="parallaxStyle">
-          <div class="cyber-bracket">[ NADEENI_COGNITIVE_INTERFACE_v1.2 ]</div>
+        <div class="interactive-grid" [style.transform]="parallaxStyle" #heroGrid>
+          <div class="cyber-bracket" #cyberBracket>[ NADEENI_COGNITIVE_INTERFACE_v1.2 ]</div>
           
           <!-- 3D Floating Logo Hologram -->
-          <div class="hero-logo-hologram">
+          <div class="hero-logo-hologram" #logoHologram>
             <div class="hologram-rings">
               <div class="h-ring r1"></div>
               <div class="h-ring r2"></div>
@@ -28,15 +51,13 @@ import { Component, HostListener } from '@angular/core';
           </div>
           
           <!-- Animated neon glitch header -->
-          <h1 class="hero-title" data-text="NADEENI">NADEENI</h1>
+          <h1 class="hero-title" data-text="NADEENI" #heroTitle>NADEENI</h1>
           
-          <!-- Description subtitle -->
-          <p class="hero-subtitle">
-            We craft digital experiences through code, creativity, and intelligence.
-          </p>
+          <!-- Description subtitle with stagger reveal -->
+          <p class="hero-subtitle" #heroSubtitle>We craft digital experiences through code, creativity, and intelligence.</p>
 
           <!-- Core Call to Actions -->
-          <div class="button-group">
+          <div class="button-group" #btnGroup>
             <a href="#team" class="cyber-button primary glow-blue" (click)="scrollTo('#team', $event)">
               MEET THE TEAM
               <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor">
@@ -50,11 +71,42 @@ import { Component, HostListener } from '@angular/core';
               </svg>
             </a>
           </div>
+
+          <!-- Animated Stats Counter Row -->
+          <div class="hero-stats-row" #statsRow>
+            <div class="stat-box">
+              <div class="stat-glow"></div>
+              <div class="stat-num-container">
+                <span class="stat-number" #statDevelopers>0</span>
+              </div>
+              <span class="stat-label">CORE BUILDERS</span>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-box">
+              <div class="stat-glow"></div>
+              <div class="stat-num-container">
+                <span class="stat-number" #statProjects>0</span><span class="stat-accent">+</span>
+              </div>
+              <span class="stat-label">DIGITAL CONSTRUCTS</span>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-box">
+              <div class="stat-glow"></div>
+              <div class="stat-num-container">
+                <span class="stat-number" #statPassion>0</span><span class="stat-accent">%</span>
+              </div>
+              <span class="stat-label">SYSTEM INTEGRITY</span>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- Dynamic mouse scrolling cue -->
-      <div class="scroll-indicator" (click)="scrollTo('#story', $event)">
+      <div class="scroll-indicator" (click)="scrollTo('#story', $event)" #scrollCue>
         <span class="scroll-text">SYSTEM_SCROLL</span>
         <div class="scroll-arrow"></div>
       </div>
@@ -72,6 +124,54 @@ import { Component, HostListener } from '@angular/core';
       overflow: hidden;
       perspective: 1200px;
     }
+
+    /* 3D Glassmorphic Cubes */
+    .cube-container {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      opacity: 0.35;
+      z-index: 1;
+    }
+
+    .cube-1 {
+      top: 15%;
+      left: 8%;
+    }
+
+    .cube-2 {
+      bottom: 20%;
+      right: 8%;
+      width: 80px;
+      height: 80px;
+    }
+
+    .cube-2 .face {
+      transform-origin: center center -40px;
+    }
+
+    .face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(89, 146, 236, 0.03);
+      border: 1px solid rgba(61, 175, 138, 0.25);
+      backdrop-filter: blur(4px);
+      box-shadow: inset 0 0 10px rgba(61, 175, 138, 0.1);
+    }
+
+    .cube-1 .face {
+      transform-origin: center center -30px;
+    }
+
+    .face.front  { transform: rotateY(0deg); }
+    .face.back   { transform: rotateY(180deg); }
+    .face.right  { transform: rotateY(90deg); }
+    .face.left   { transform: rotateY(-90deg); }
+    .face.top    { transform: rotateX(90deg); }
+    .face.bottom { transform: rotateX(-90deg); }
 
     .glow-sphere {
       position: absolute;
@@ -101,13 +201,13 @@ import { Component, HostListener } from '@angular/core';
       z-index: 2;
       text-align: center;
       max-width: 950px;
-      padding: 0 24px;
+      padding: 40px 24px;
       width: 100%;
     }
 
     .interactive-grid {
-      transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
-      padding: 56px 40px;
+      transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      padding: 56px 40px 48px 40px;
       border: 1px solid rgba(255, 255, 255, 0.03);
       background: rgba(11, 15, 25, 0.35);
       backdrop-filter: blur(10px);
@@ -124,8 +224,8 @@ import { Component, HostListener } from '@angular/core';
       top: 0; left: 0;
       width: 100%; height: 100%;
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
       background-size: 32px 32px;
       z-index: -1;
       border-radius: 18px;
@@ -213,9 +313,9 @@ import { Component, HostListener } from '@angular/core';
       border-radius: 18px;
       padding: 8px;
       box-shadow:
-        0 0 20px rgba(61, 175, 138, 0.4),
-        0 0 60px rgba(89, 146, 236, 0.2),
-        0 25px 50px rgba(0, 0, 0, 0.5);
+      0 0 20px rgba(61, 175, 138, 0.4),
+      0 0 60px rgba(89, 146, 236, 0.2),
+      0 25px 50px rgba(0, 0, 0, 0.5);
     }
 
     .logo-scan-sweep {
@@ -262,7 +362,6 @@ import { Component, HostListener } from '@angular/core';
       user-select: none;
     }
 
-    /* Glitch layers */
     .hero-title::after {
       content: attr(data-text);
       position: absolute;
@@ -309,6 +408,81 @@ import { Component, HostListener } from '@angular/core';
       justify-content: center;
       flex-wrap: wrap;
       transform: translateZ(50px);
+      margin-bottom: 56px;
+    }
+
+    /* Stats Counter Row Styles */
+    .hero-stats-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(8, 12, 22, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 24px 16px;
+      margin-top: 10px;
+      transform: translateZ(35px);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .stat-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(61, 175, 138, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .stat-num-container {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    .stat-number {
+      font-family: var(--font-cyber);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--color-white);
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-accent {
+      font-family: var(--font-cyber);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--color-cyan);
+      margin-left: 2px;
+      text-shadow: 0 0 10px rgba(61, 175, 138, 0.4);
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 2px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.12), transparent);
     }
 
     .scroll-indicator {
@@ -374,6 +548,19 @@ import { Component, HostListener } from '@angular/core';
       .interactive-grid {
         padding: 40px 24px;
       }
+      .hero-stats-row {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+      }
+      .stat-divider {
+        width: 80%;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.12), transparent);
+      }
+      .cube-container {
+        display: none; /* Hide background cubes on mobile */
+      }
     }
 
     /* Keyframes */
@@ -409,11 +596,144 @@ import { Component, HostListener } from '@angular/core';
   `],
   standalone: false
 })
-export class Hero {
+export class Hero implements OnInit, AfterViewInit {
   parallaxStyle = '';
+  private isBrowser = false;
+
+  @ViewChild('heroGrid', { static: true }) heroGrid!: ElementRef<HTMLDivElement>;
+  @ViewChild('cyberBracket', { static: true }) cyberBracket!: ElementRef<HTMLDivElement>;
+  @ViewChild('logoHologram', { static: true }) logoHologram!: ElementRef<HTMLDivElement>;
+  @ViewChild('heroTitle', { static: true }) heroTitle!: ElementRef<HTMLHeadingElement>;
+  @ViewChild('heroSubtitle', { static: true }) heroSubtitle!: ElementRef<HTMLParagraphElement>;
+  @ViewChild('btnGroup', { static: true }) btnGroup!: ElementRef<HTMLDivElement>;
+  @ViewChild('statsRow', { static: true }) statsRow!: ElementRef<HTMLDivElement>;
+  @ViewChild('scrollCue', { static: true }) scrollCue!: ElementRef<HTMLDivElement>;
+
+  // Stats numbers views
+  @ViewChild('statDevelopers') statDevsRef!: ElementRef<HTMLSpanElement>;
+  @ViewChild('statProjects') statProjRef!: ElementRef<HTMLSpanElement>;
+  @ViewChild('statPassion') statPassion!: ElementRef<HTMLSpanElement>;
+
+  // Background cubes
+  @ViewChild('cube1', { static: true }) cube1!: ElementRef<HTMLDivElement>;
+  @ViewChild('cube2', { static: true }) cube2!: ElementRef<HTMLDivElement>;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // 1. Split subtitle characters for the premium staggering slide-fade reveal
+    const subtitleEl = this.heroSubtitle.nativeElement;
+    const rawText = subtitleEl.textContent || '';
+    subtitleEl.innerHTML = rawText.split('').map(char => 
+      `<span class="char" style="display: inline-block; opacity: 0; transform: translate3d(0, 15px, 0); will-change: transform, opacity;">${char === ' ' ? '&nbsp;' : char}</span>`
+    ).join('');
+
+    // 2. Hide elements for the GSAP initial timeline sequence
+    const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+    gsap.set([
+      this.cyberBracket.nativeElement,
+      this.logoHologram.nativeElement,
+      this.heroTitle.nativeElement,
+      this.btnGroup.nativeElement,
+      this.statsRow.nativeElement,
+      this.scrollCue.nativeElement
+    ], { opacity: 0, y: 30 });
+
+    // Initial state of stats numbers
+    if (this.statDevsRef) this.statDevsRef.nativeElement.innerText = '0';
+    if (this.statProjRef) this.statProjRef.nativeElement.innerText = '0';
+    if (this.statPassion) this.statPassion.nativeElement.innerText = '0';
+
+    // 3. Play entry cinematic animation timeline
+    tl.to(this.heroGrid.nativeElement, { opacity: 1, duration: 0.1 })
+      .to(this.logoHologram.nativeElement, { opacity: 1, y: 0, duration: 1.2, ease: 'back.out(1.5)' })
+      .to(this.cyberBracket.nativeElement, { opacity: 1, y: 0, duration: 0.8 }, '-=0.8')
+      .to(this.heroTitle.nativeElement, { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.6')
+      // Staggered letters slide-up reveal (our premium typewriter replacement)
+      .to(subtitleEl.querySelectorAll('.char'), {
+        opacity: 1,
+        y: 0,
+        stagger: 0.015,
+        duration: 0.6,
+        ease: 'power2.out'
+      }, '-=0.5')
+      .to(this.btnGroup.nativeElement, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.3')
+      .to(this.statsRow.nativeElement, { 
+        opacity: 1, 
+        y: 0, 
+        duration: 0.8, 
+        onComplete: () => {
+          // Trigger the counting up sequence once stats row displays
+          this.animateCounters();
+        }
+      }, '-=0.6')
+      .to(this.scrollCue.nativeElement, { opacity: 0.65, y: 0, duration: 0.8 }, '-=0.4');
+
+    // 4. Animate the background rotating 3D cubes continuously
+    gsap.to(this.cube1.nativeElement, {
+      rotateX: 360,
+      rotateY: 720,
+      z: 50,
+      yoyo: true,
+      repeat: -1,
+      duration: 25,
+      ease: 'none'
+    });
+
+    gsap.to(this.cube2.nativeElement, {
+      rotateX: -720,
+      rotateY: 360,
+      z: -100,
+      yoyo: true,
+      repeat: -1,
+      duration: 30,
+      ease: 'none'
+    });
+  }
+
+  private animateCounters(): void {
+    const devObj = { val: 0 };
+    const projObj = { val: 0 };
+    const passObj = { val: 0 };
+
+    gsap.to(devObj, {
+      val: 5,
+      duration: 2.2,
+      ease: 'power2.out',
+      onUpdate: () => {
+        if (this.statDevsRef) this.statDevsRef.nativeElement.innerText = Math.floor(devObj.val).toString();
+      }
+    });
+
+    gsap.to(projObj, {
+      val: 3,
+      duration: 2.5,
+      ease: 'power2.out',
+      onUpdate: () => {
+        if (this.statProjRef) this.statProjRef.nativeElement.innerText = Math.floor(projObj.val).toString();
+      }
+    });
+
+    gsap.to(passObj, {
+      val: 100,
+      duration: 2.8,
+      ease: 'power3.out',
+      onUpdate: () => {
+        if (this.statPassion) this.statPassion.nativeElement.innerText = Math.floor(passObj.val).toString();
+      }
+    });
+  }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
+    if (!this.isBrowser) return;
     const width = window.innerWidth;
     const height = window.innerHeight;
     

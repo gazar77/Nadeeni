@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 @Component({
   selector: 'feature-contact',
@@ -130,6 +135,7 @@ import { Component } from '@angular/core';
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
+      will-change: transform, opacity;
     }
 
     .hud-mono {
@@ -166,6 +172,7 @@ import { Component } from '@angular/core';
     /* Form Styles */
     .form-wrapper {
       width: 100%;
+      will-change: transform, opacity;
     }
 
     .form-title {
@@ -265,12 +272,47 @@ import { Component } from '@angular/core';
   `],
   standalone: false
 })
-export class Contact {
+export class Contact implements OnInit, AfterViewInit {
   showToast = false;
   toastHeader = '';
   toastBody = '';
   toastTheme: 'success' | 'error' = 'success';
   isSubmitting = false;
+  private isBrowser = false;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // Slide in concluding narrative phrases
+    gsap.from('.contact-section .ending-panel', {
+      x: -45,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.contact-section .contact-container',
+        start: 'top 85%'
+      }
+    });
+
+    // Fade and slide form dispatch wrapper
+    gsap.from('.contact-section .form-wrapper', {
+      x: 45,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.contact-section .contact-container',
+        start: 'top 85%'
+      }
+    });
+  }
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();

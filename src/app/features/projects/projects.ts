@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, AfterViewInit, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface Project {
   id: string;
@@ -34,7 +39,11 @@ interface Project {
 
       <div class="projects-list">
         <!-- Render glassmorphic showcase cards -->
-        <div class="project-card-wrapper" *ngFor="let p of projects">
+        <div class="project-card-wrapper" 
+             *ngFor="let p of projects; let i = index"
+             (mousemove)="onCardMouseMove($event, i)"
+             (mouseleave)="onCardMouseLeave(i)"
+             [style.transform]="cardTransforms[i]">
           <shared-glass-card [isHoverable]="true">
             <div class="project-layout">
               
@@ -198,7 +207,16 @@ interface Project {
     }
 
     .project-card-wrapper {
-      transition: all 0.4s ease;
+      transition: box-shadow 0.3s ease;
+      will-change: transform, box-shadow;
+      border-radius: 12px;
+      transform-style: preserve-3d;
+    }
+
+    .project-card-wrapper:hover {
+      box-shadow: 
+        0 15px 45px rgba(0, 0, 0, 0.65),
+        var(--shadow-x, 0px) var(--shadow-y, 8px) 30px rgba(61, 175, 138, 0.15);
     }
 
     .project-layout {
@@ -218,6 +236,7 @@ interface Project {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
+      will-change: transform, opacity;
     }
 
     .project-tag {
@@ -272,6 +291,7 @@ interface Project {
       display: flex;
       align-items: center;
       gap: 6px;
+      will-change: transform, opacity;
     }
 
     .dot {
@@ -285,6 +305,7 @@ interface Project {
       width: 100%;
       display: flex;
       justify-content: center;
+      will-change: transform, opacity;
       
       &.web .bezel-frame {
         width: 100%;
@@ -319,7 +340,32 @@ interface Project {
 
     .project-card-wrapper:hover .bezel-frame {
       border-color: rgba(61, 175, 138, 0.35);
-      box-shadow: 0 15px 45px rgba(61, 175, 138, 0.15);
+      box-shadow: 
+        inset 0 0 20px rgba(61, 175, 138, 0.06),
+        0 15px 45px rgba(61, 175, 138, 0.18);
+    }
+
+    /* Sweep Scanner Bezel Sweep overlay */
+    .bezel-frame::before {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, rgba(61, 175, 138, 0.05) 50%, transparent 100%);
+      pointer-events: none;
+      z-index: 3;
+      transition: top 0s;
+    }
+
+    .project-card-wrapper:hover .bezel-frame::before {
+      animation: bezel-sweep 2.5s infinite linear;
+    }
+
+    @keyframes bezel-sweep {
+      0% { top: -100%; }
+      100% { top: 100%; }
     }
 
     .mockup-header {
@@ -449,7 +495,10 @@ interface Project {
   `],
   standalone: false
 })
-export class Projects {
+export class Projects implements OnInit, AfterViewInit {
+  cardTransforms: string[] = [];
+  private isBrowser = false;
+
   projects: Project[] = [
     {
       id: 'pulse-care',
@@ -506,4 +555,98 @@ export class Projects {
       }
     }
   ];
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    this.cardTransforms = this.projects.map(() => 'perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)');
+  }
+
+  ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
+    // Header reveal
+    gsap.from('.projects-section .projects-header', {
+      y: 40,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.projects-section .projects-header',
+        start: 'top 85%'
+      }
+    });
+
+    // Project cards staggered reveals with pills wave-animate pops!
+    const cards = document.querySelectorAll('.project-card-wrapper');
+    cards.forEach((cardEl) => {
+      const details = cardEl.querySelector('.project-details');
+      const mockup = cardEl.querySelector('.project-mockup');
+      const pills = cardEl.querySelectorAll('.pill');
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: cardEl,
+          start: 'top 80%',
+          toggleActions: 'play none none none'
+        }
+      });
+
+      tl.from(cardEl, {
+        y: 80,
+        opacity: 0,
+        duration: 1.4,
+        ease: 'power4.out'
+      })
+      .from(details, {
+        x: -45,
+        opacity: 0,
+        duration: 1.0,
+        ease: 'power3.out'
+      }, '-=1.1')
+      .from(mockup, {
+        x: 45,
+        opacity: 0,
+        duration: 1.0,
+        ease: 'power3.out'
+      }, '-=1.1')
+      .from(pills, {
+        scale: 0,
+        opacity: 0,
+        y: 15,
+        stagger: 0.08,
+        duration: 0.7,
+        ease: 'back.out(1.8)'
+      }, '-=0.5');
+    });
+  }
+
+  onCardMouseMove(event: MouseEvent, index: number): void {
+    if (!this.isBrowser) return;
+    const card = (event.currentTarget as HTMLElement);
+    const rect = card.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+
+    const rotateX = ((y - cy) / cy) * -8;
+    const rotateY = ((x - cx) / cx) * 8;
+
+    this.cardTransforms[index] =
+      `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+
+    // opposite shadow translation logic
+    const shadowX = ((x - cx) / cx) * -12;
+    const shadowY = ((y - cy) / cy) * -12;
+
+    card.style.setProperty('--shadow-x', `${shadowX}px`);
+    card.style.setProperty('--shadow-y', `${shadowY}px`);
+  }
+
+  onCardMouseLeave(index: number): void {
+    this.cardTransforms[index] =
+      'perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)';
+  }
 }
